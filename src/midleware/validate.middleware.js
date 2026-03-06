@@ -1,13 +1,7 @@
-const validate = (schema) => {
-  return (req, res, next) => {
-    try {
-      const validatedData = schema.parse(req.body);
-      req.body = validatedData;
-      next();
-    } catch (err) {
-      next(err)
-    }
-  };
+export const validate = (schema) => (req, res, next) => {
+  const result = schema.safeParse(req.body);
+  if (!result.success) {
+    return next(result.error); 
+  }
+  next();
 };
-
-module.exports = validate;
