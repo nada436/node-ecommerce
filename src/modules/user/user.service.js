@@ -40,14 +40,11 @@ export const signup=async(req,res)=>{
 }
 
 
-
+//resend_otp
 export const resend_otp = async (req, res, next) => {
     const user = await User_model.findOne({ email: req.body.email }); 
     if (!user) {
       return res.status(400).json({ status: "fail", message: "User not found" });
-    }
-    if (user.isVerified) {
-      return res.status(400).json({ status: "fail", message: "User already verified" });
     }
     const otp = generateOTP();
     const hashedOtp = await bcrypt.hash(otp, +process.env.saltRounds);
@@ -93,21 +90,151 @@ export const verify_account = async (req, res, next) => {
 
 
   //login
-  export const login=async(req,res)=>{
- const { password, name } = req.body;
-    const user = await User_model.findOne({name});
+  export const login = async (req, res) => {
+
+  const { password, name } = req.body;
+
+  const user = await User_model.findOne({ name });
+
+  if (!user) {
+    return res.status(401).json({
+      status: "fail",
+      message: "Invalid username or password"
+    });
+  }
+
+  if (!user.isVerified) {
+    return res.status(403).json({
+      status: "fail",
+      message: "Please verify your email first"
+    });
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if (!isMatch) {
+    return res.status(401).json({
+      status: "fail",
+      message: "Invalid username or password"
+    });
+  }
+
+  const accessToken = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "15m" }
+  );
+
+  const refreshToken = jwt.sign(
+    { id: user._id },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    maxAge: 15 * 60 * 1000
+  });
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  });
+
+  res.json({
+    status: "success",
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    }
+  });
+
+};
+
+export const refreshToken = async (req, res) => {
+
+  const refreshToken = req.cookies.refreshToken;
+
+  if (!refreshToken) {
+    return res.status(401).json({
+      message: "No refresh token"
+    });
+  }
+
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET
+    );
+
+    const newAccessToken = jwt.sign(
+      { id: decoded.id },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      maxAge: 15 * 60 * 1000
+    });
+
+    res.json({
+      message: "New access token created"
+    });
+
+};
+
+  //forget password---->use resend_otp function
+export const forget_password=async(req,res)=>{
+ const { email ,otp,new_password} = req.body;
+    const user = await User_model.findOne({email});
     if (!user) {
-      return res.status(404).json({ status: "fail", message: "wrong username " });
+      return res.status(404).json({ status: "fail", message: "User not found" });
     }
-    if(!user.isVerified){
-         return res.status(404).json({ status: "fail", message: "User account is not verified. Please verify your email to continue" });
+  if (user.otpExpiry < Date.now()) { 
+      return res.status(400).json({ status: "fail", message: "OTP expired, request a new one" });
     }
-    let is_match=bcrypt.compare(password,user.password)
-    if(!is_match){
-        return res.status(404).json({ status: "fail", message: "wrong password" });
+
+    const isMatch = await bcrypt.compare(otp, user.otp); 
+    if (!isMatch) {
+      return res.status(400).json({ status: "fail", message: "Invalid OTP" });
     }
-    let token=jwt.sign({name:user.name,email:user.email,role:user.role},process.env.JWT_SECRET)
-    res.json({ status: "success",token});
+    const hashedPassword = await bcrypt.hash(new_password, +process.env.saltRounds);
+    await User_model.updateOne({email},{password:hashedPassword}); 
+    res.json({ status: "success", message: "password updated successfully" });
+
+  }
+
+
+  //user profile
+  export const getuser=(req,res)=>{
+
+   res.json({ status: "success", user: req.user });
 
 
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+  //logout
+  export const logout = (req,res)=>{
+
+  res.clearCookie("accessToken")
+  res.clearCookie("refreshToken")
+
+  res.json({
+    message:"logged out"
+  })
+
+}
