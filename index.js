@@ -1,23 +1,28 @@
-require('dotenv').config();
-const express = require('express');
-const connectDB  = require('./src/config/database_connection');      
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+dotenv.config();
 
-const { env } = require('node:process')
-const port =process.env.port
-const app = express()
+import connectDB from "./src/config/database_connection.js";
+import { errorHandler } from "./src/midleware/errorHandler.middleware.js";
+import { user_routes } from "./src/modules/user/user.controller.js";
 
-connectDB();  
-app.get('/', (req, res) => res.send('Hello World!'))
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
-
-
+const app = express();
+const port = process.env.PORT || 3000;
 
 
+app.use(cors());
+app.use(express.json());
+
+
+connectDB();
+
+app.use("/user", user_routes);
 
 
 
+app.use(errorHandler);
 
 
-
-
+app.listen(port, () => console.log(`Server running on port ${port}!`));
 
