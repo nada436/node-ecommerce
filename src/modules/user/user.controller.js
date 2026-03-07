@@ -1,8 +1,8 @@
 import express, { Router } from "express";
 import { catchAsync } from "../../midleware/errorHandler.middleware.js";
-import { forget_password, getuser, login, logout, refreshAccessToken, resend_otp, signup, verify_account } from "./user.service.js";
+import { forget_password, getuser, login, logout, refreshAccessToken, resend_otp, signup, signup_bygoogle, verify_account, delete_user, update_user } from "./user.service.js";
 import { validate } from "../../midleware/validate.middleware.js";
-import {forget_passwordSchema, loginSchema, resendOtpSchema, userValidationSchema, verifySchema} from "./user.validation.js";
+import {forget_passwordSchema, loginSchema, resendOtpSchema, update_Schema, userValidationSchema, verifySchema} from "./user.validation.js";
 import { auth } from "../../midleware/auth.middleware.js";
 export const user_routes = Router(); 
 
@@ -14,10 +14,7 @@ user_routes.post("/forget_password",validate(forget_passwordSchema),catchAsync(f
 user_routes.get("/myprofile",auth,catchAsync(getuser))
 user_routes.get("/logout",auth,catchAsync(logout))
 user_routes.get("/refreshToken",auth,catchAsync(refreshAccessToken))
+user_routes.post("/signup_bygoogle",auth,catchAsync(signup_bygoogle))  //test
+user_routes.patch("/update_user",validate(update_Schema),auth,catchAsync(update_user))
+user_routes.delete("/delete_user",auth,catchAsync(delete_user))
 
-
-// user_routes.patch("/:id",catchAsync())
-// user_routes.delete("/:id",catchAsync())
-
-//edit user data
-//signup(google)

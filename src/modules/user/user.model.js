@@ -1,18 +1,28 @@
 import mongoose from "mongoose";
 
+
 export const userSchema = new mongoose.Schema({
   name:       { type: String, required: true ,unique: true},
   email:      { type: String, required: true, unique: true },
   password:   { type: String, required: true },
   role:       { type: String, default: "user" },
   isVerified: { type: Boolean, default: false },
-
+  phone: { type:Number},
   otp:        { type: String },
   otpExpiry:  { type: Date },
-
+   provider: { 
+    type: String, 
+    enum: ["system", "google"], 
+    default: "system" 
+  },
   favorites:  [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
 
-  deletedAt:  { type: Date },
+  deletedAt:  { type: Date ,default:null },
 }, { timestamps: true });
 
 export const User_model = mongoose.model("User", userSchema);
+
+userSchema.pre(/^findOne/, function (next) {
+  this.where({ deletedAt: null });
+  next();
+});

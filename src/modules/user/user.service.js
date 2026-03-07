@@ -4,10 +4,13 @@ import { generateOTP } from "../../utils/otp.js";
 import {  User_model } from "./user.model.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken'
+import {OAuth2Client}  from 'google-auth-library';
+
+
 export const signup=async(req,res)=>{
  let {name,password,email}=req.body;
  //check if user already exist
- let existingEmail = await User_model.findOne({ email });
+ let existingEmail = await User_model.findOne({ email ,deletedAt:null});
 if (existingEmail) {
   return res.status(400).json({
     status: "fail",
@@ -15,7 +18,7 @@ if (existingEmail) {
   });
 }
 
-let existingName = await User_model.findOne({ name });
+let existingName = await User_model.findOne({ name ,deletedAt:null });
 if (existingName) {
   return res.status(400).json({
     status: "fail",
@@ -45,6 +48,7 @@ if (existingName) {
         name: user.name,
         email: user.email,
         role:user.role,
+        phone:user.phone
       }
     });
 }
@@ -109,7 +113,7 @@ export const verify_account = async (req, res, next) => {
      filter.email=req.body.email
   }
 
-  const user = await User_model.findOne(filter);
+  const user = await User_model.findOne({...filter,deletedAt:null});
 
   if (!user) {
     return res.status(401).json({
@@ -168,6 +172,71 @@ export const verify_account = async (req, res, next) => {
 
 };
 
+
+//login by google
+export const signup_bygoogle=async(req,res)=>{
+const{idToken}=req.body
+  const client = new OAuth2Client();
+  const ticket = await client.verifyIdToken({
+        idToken,
+        audience: process.env.CLIENT_ID,  
+    });
+    const payload = ticket.getPayload();
+     const{email,name}=payload
+//check if user not Exist
+ let user= await User_model.findOne({email,name})
+ if(!user){
+  user= await User_model.create({name,email,provider:"google"})
+ }
+ const accessToken = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "15m" }
+  );
+
+  const refreshToken = jwt.sign(
+    { id: user._id },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    maxAge: 15 * 60 * 1000
+  });
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  });
+
+  res.json({
+    status: "success",
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    }
+  });
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
 export const refreshAccessToken = async (req, res) => {
 
   const refreshToken = req.cookies.refreshToken;
@@ -203,7 +272,7 @@ export const refreshAccessToken = async (req, res) => {
   //forget password---->use resend_otp function
 export const forget_password=async(req,res)=>{
  const { email ,otp,new_password} = req.body;
-    const user = await User_model.findOne({email});
+    const user = await User_model.findOne({email,deletedAt:null});
     if (!user) {
       return res.status(404).json({ status: "fail", message: "User not found" });
     }
@@ -227,18 +296,56 @@ export const forget_password=async(req,res)=>{
 
    res.json({ status: "success", user: req.user });
 
-
   }
 
+//update userinfo
+export const update_user=async(req,res)=>{
+ let filter = {};
+    if (req.body.name) filter.name = req.body.name;
+    if (req.body.email) filter.email = req.body.email; 
+    if (req.body.phone) filter.phone = req.body.phone; 
+    let user = await User_model.findOneAndUpdate(
+      { email: req.user.email, deletedAt: null }, 
+      filter,
+      { new: true } 
+    );
 
+    if (!user) {
+      return res.status(404).json({ status: "fail", message: "User not found" });
+    }
 
+    res.status(201).json({
+      status: "success",
+      message: "User updated successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
+      }
+    });
 
+}
 
+export const delete_user=async(req,res)=>{
+ const user = await User_model.findOne({ email: req.user.email });
 
-
-
-
-
+    if (!user) {
+      return res.status(404).json({ status: "fail", message: "User not found" });
+    }
+    // soft delete
+    await User_model.updateOne(
+  { email: req.user.email },
+  { deletedAt: new Date() }
+);
+    res.clearCookie("accessToken")
+    res.clearCookie("refreshToken")
+    res.json({
+      status: "success",
+      message: "User soft deleted successfully",
+    });
+}
 
 
 
@@ -249,6 +356,7 @@ export const forget_password=async(req,res)=>{
   res.clearCookie("refreshToken")
 
   res.json({
+    status:"success",
     message:"logged out"
   })
 
