@@ -23,8 +23,11 @@ export const verifySchema = z.object({
 });
 
 export const loginSchema = z.object({
- password: user_data.password,
-  name:user_data.name
+  name: z.string().optional(),
+  email: z.string().email().optional(),
+  password: user_data.password
+}).refine((data) => data.name || data.email, {
+  message: "You must provide either name or email"
 });
 
 export const forget_passwordSchema = z.object({

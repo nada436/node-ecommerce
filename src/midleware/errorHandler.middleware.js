@@ -1,3 +1,5 @@
+
+
 export const catchAsync = (fn) => {
   return (req, res, next) => {
     fn(req, res, next).catch((err) => next(err));
@@ -5,7 +7,7 @@ export const catchAsync = (fn) => {
 };
 
 export const errorHandler = (err, req, res, next) => {
-
+ 
   if (err.name === "ZodError") {
     const messages = err.issues.map((e) => `${e.path.join(".") || "field"}: ${e.message}`).join(", ");
     return res.status(400).json({ status: "fail", message: messages });
@@ -33,7 +35,7 @@ export const errorHandler = (err, req, res, next) => {
   if (err.name === "CastError") {
     return res.status(400).json({ status: "fail", message: `Invalid ${err.path}: ${err.value}` });
   }
-
+  
   // Fallback
   res.status(err.status || 500).json({
   status: "error",

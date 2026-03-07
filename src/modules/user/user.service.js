@@ -7,18 +7,28 @@ import jwt from 'jsonwebtoken'
 export const signup=async(req,res)=>{
  let {name,password,email}=req.body;
  //check if user already exist
- let user = await User_model.findOne({ email });
+ let existingEmail = await User_model.findOne({ email });
+if (existingEmail) {
+  return res.status(400).json({
+    status: "fail",
+    message: "Email already exists"
+  });
+}
 
-    if (user) {
-      return res.status(400).json({ status: "fail", message: "User already exists" });
-    }
+let existingName = await User_model.findOne({ name });
+if (existingName) {
+  return res.status(400).json({
+    status: "fail",
+    message: "Username already exists"
+  });
+}
       //generate random otp
     const otp = generateOTP();
     const hashedOtp = await bcrypt.hash(otp, +process.env.saltRounds);
     const hashedPassword = await bcrypt.hash(password, +process.env.saltRounds);
      password=await bcrypt.hash(password,+process.env.saltRounds)
     // create new user
-    user = await User_model.create({ name, password, email, password: hashedPassword,
+   let user = await User_model.create({ name, password, email, password: hashedPassword,
       otp: hashedOtp,
       otpExpiry: Date.now() + 10 * 60 * 1000, // 10 minutes from now
     });
@@ -91,10 +101,15 @@ export const verify_account = async (req, res, next) => {
 
   //login
   export const login = async (req, res) => {
+  let filter={}
+  if(req.body.name){
+     filter.name=req.body.name
+  }
+   if(req.body.email){
+     filter.email=req.body.email
+  }
 
-  const { password, name } = req.body;
-
-  const user = await User_model.findOne({ name });
+  const user = await User_model.findOne(filter);
 
   if (!user) {
     return res.status(401).json({
@@ -110,7 +125,7 @@ export const verify_account = async (req, res, next) => {
     });
   }
 
-  const isMatch = await bcrypt.compare(password, user.password);
+  const isMatch = await bcrypt.compare(req.body.password, user.password);
 
   if (!isMatch) {
     return res.status(401).json({
@@ -153,7 +168,7 @@ export const verify_account = async (req, res, next) => {
 
 };
 
-export const refreshToken = async (req, res) => {
+export const refreshAccessToken = async (req, res) => {
 
   const refreshToken = req.cookies.refreshToken;
 
@@ -208,7 +223,7 @@ export const forget_password=async(req,res)=>{
 
 
   //user profile
-  export const getuser=(req,res)=>{
+  export const getuser=async (req,res)=>{
 
    res.json({ status: "success", user: req.user });
 
@@ -228,7 +243,7 @@ export const forget_password=async(req,res)=>{
 
 
   //logout
-  export const logout = (req,res)=>{
+  export const logout = async(req,res)=>{
 
   res.clearCookie("accessToken")
   res.clearCookie("refreshToken")

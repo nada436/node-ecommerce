@@ -17,10 +17,10 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
+
 connectDB();
 
 app.use("/user", user_routes);
-
 app.use("/api/products", product_routes);
 app.use("/api/categories", category_routes);
 
