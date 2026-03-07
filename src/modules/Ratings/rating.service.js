@@ -86,15 +86,17 @@ const getAllProductRatings = async (req, res, next) => {
   });
 };
 
-const updateRating = async (req, res, next) => {
+const updateRating = async (req, res) => {
   const ratingId = req.params.ratingId;
-
   const updates = req.body;
 
-  const updatedRating = await Rate.findByIdAndUpdate(
-    ratingId,
-    { ...updates },
-    { new: true, runValidators: true },
+  const updatedRating = await Rate.findOneAndUpdate(
+    {
+      _id: ratingId,
+      userId: req.user._id, 
+    },
+    updates,
+    { new: true, runValidators: true }
   )
     .populate("userId", "name")
     .select("rating comment createdAt");
@@ -102,32 +104,34 @@ const updateRating = async (req, res, next) => {
   if (!updatedRating) {
     return res.status(404).json({
       status: "fail",
-      message: "Rating not found",
+      message: "Rating not found or you are not allowed to edit it",
     });
   }
 
-  return res.status(200).json({
+  res.status(200).json({
     status: "success",
     data: updatedRating,
   });
 };
 
-const deleteRating = async (req, res, next) => {
+const deleteRating = async (req, res) => {
   const ratingId = req.params.ratingId;
 
-  const deletedRating = await Rate.findByIdAndDelete(ratingId);
+  const deletedRating = await Rate.findOneAndDelete({
+    _id: ratingId,
+    userId: req.user._id, 
+  });
 
   if (!deletedRating) {
     return res.status(404).json({
       status: "fail",
-      message: "There is no rating with this id",
+      message: "Rating not found or you are not allowed to delete it",
     });
   }
 
-  return res.status(200).json({
+  res.status(200).json({
     status: "success",
     data: deletedRating,
   });
 };
-
 export { createRating, getAllProductRatings, updateRating, deleteRating };

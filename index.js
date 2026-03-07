@@ -10,6 +10,7 @@ import cookieParser from "cookie-parser";
 import { product_routes } from "./src/modules/products/product.controller.js";
 import { category_routes } from "./src/modules/categories/category.controller.js";
 import { rating_routes } from "./src/modules/Ratings/rating.controller.js";
+import { cart_routes } from "./src/modules/cart/cart.controller.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -21,10 +22,11 @@ app.use(cookieParser());
 
 connectDB();
 
-app.use("/user", user_routes);
+app.use("/api/user", user_routes);
 app.use("/api/products", product_routes);
 app.use("/api/categories", category_routes);
 app.use("/api/products", rating_routes); 
+app.use("/api/cart", cart_routes);
 app.use(errorHandler);
 
 app.listen(port, () => console.log(`Server running on port ${port}!`));

@@ -1,6 +1,7 @@
 import Product from "./product.model.js";
 import productValidation from "./product.validation.js";
 import { Category } from "../categories/category.model.js";
+import mongoose from "mongoose";
 const getAllProducts = async (req, res) => {
   const {
     name,
@@ -124,4 +125,79 @@ const deleteProduct = async (req, res) => {
   });
 };
 
-export { getAllProducts, createProduct, updateProduct, deleteProduct };
+const toggleFavorite = async (req, res) => {
+  const { id } = req.params;
+
+  // check product
+  const product = await Product.findById(id);
+  if (!product) {
+    return res.status(404).json({
+      status: "fail",
+      message: "No product found with this ID",
+    });
+  }
+
+  const user = req.user;
+  const index = user.favorites.findIndex(
+    (fav) => fav.toString() === id
+  );
+
+  if (index > -1) {
+    user.favorites.splice(index, 1);
+  } else {
+    user.favorites.push(id);
+  }
+
+  await user.save();
+
+  res.json({
+    status: "success",
+    favorites: user.favorites,
+  });
+};
+
+const getFavourites = async (req, res) => {
+   let user= req.user
+   const favourites = await Product.find({
+      _id: { $in: user.favorites },
+    });
+
+    res.status(200).json({
+      status: "success",
+      results: favourites.length,
+      data: favourites,
+    });
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export { getAllProducts, createProduct, updateProduct, deleteProduct ,getFavourites,toggleFavorite};
