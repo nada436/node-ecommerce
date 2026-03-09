@@ -11,3 +11,14 @@ export const createOrderSchema = z.object({
 
     coupon: z.string().optional(),
   })
+
+
+export const statusSchema = z.object({
+  status: z.enum(
+    ["pending", "processing", "shipped", "delivered", "cancelled"], 
+    { 
+      errorMap: () => ({ message: "Invalid order status. Must be one of: pending, processing, shipped, delivered, cancelled." }) 
+    }
+  ),
+
+});

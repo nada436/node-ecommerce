@@ -6,7 +6,11 @@ export const optionalAuth = async(req, res, next) => {
      const token = req.cookies?.accessToken;
     if (token) {
       const decoded = await jwt.verify(token, process.env.JWT_SECRET);
-        req.user = await User_model.findById(decoded.id);
+        req.user = await User_model.findOne({
+          _id: decoded.id,
+          isblocked: false,
+          deletedAt: null,
+        });
     } else {
       req.user = null; // guest
     }

@@ -20,7 +20,7 @@ export const userSchema = new mongoose.Schema(
       default: "system",
     },
     favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
-
+    isblocked:{ type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
   },
   { timestamps: true },
@@ -28,7 +28,4 @@ export const userSchema = new mongoose.Schema(
 
 export const User_model = mongoose.model("User", userSchema);
 
-userSchema.pre(/^findOne/, function (next) {
-  this.where({ deletedAt: null });
-  next();
-});
+
