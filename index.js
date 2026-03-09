@@ -13,6 +13,7 @@ import { rating_routes } from "./src/modules/Ratings/rating.controller.js";
 import { cart_routes } from "./src/modules/cart/cart.controller.js";
 import { payment_routes } from "./src/modules/payment/payment.controller.js";
 import order_routes from "./src/modules/order/order.controller.js";
+import { promo_router } from "./src/modules/promo/promocode.controller.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -30,8 +31,8 @@ app.use("/api/categories", category_routes);
 app.use("/api/products", rating_routes);
 app.use("/api/cart", cart_routes);
 app.use("/api/payment", payment_routes);
-app.use("/api/order",order_routes)
+app.use("/api/promo", promo_router);
+app.use("/api/order", order_routes);
 app.use(errorHandler);
 
 app.listen(port, () => console.log(`Server running on port ${port}!`));
-
