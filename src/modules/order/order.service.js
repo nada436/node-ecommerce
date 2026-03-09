@@ -70,8 +70,12 @@ export const createOrder = async (req, res) => {
         ? { name: guestName, email: guestEmail, phone: guestPhone }
         : undefined,
     });
-    await sendEmail({to:req.user.email||guestEmail,type:"orderdetails", order: { ...order.toObject(),customerName: req.user.name||guestName}})
-
+    const populatedOrder = await Order.findById(order._id).populate("products.product", "name");
+    await sendEmail({
+  to: req.user?.email || guestEmail,
+  type: "orderdetails",
+  order: { ...populatedOrder.toObject(), customerName: req.user?.name || guestName }
+});
     res.status(201).json({ message: "Order placed successfully", order });
   } 
 
