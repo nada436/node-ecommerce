@@ -1,24 +1,30 @@
 import mongoose from "mongoose";
 
+export const userSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    stripeCustomerId: {
+      type: String,
+      default: null,
+    },
+    role: { type: String, default: "user" },
+    isVerified: { type: Boolean, default: false },
+    phone: { type: Number },
+    otp: { type: String },
+    otpExpiry: { type: Date },
+    provider: {
+      type: String,
+      enum: ["system", "google"],
+      default: "system",
+    },
+    favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
 
-export const userSchema = new mongoose.Schema({
-  name:       { type: String, required: true ,unique: true},
-  email:      { type: String, required: true, unique: true },
-  password:   { type: String, required: true },
-  role:       { type: String, default: "user" },
-  isVerified: { type: Boolean, default: false },
-  phone: { type:Number},
-  otp:        { type: String },
-  otpExpiry:  { type: Date },
-   provider: { 
-    type: String, 
-    enum: ["system", "google"], 
-    default: "system" 
+    deletedAt: { type: Date, default: null },
   },
-  favorites:  [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
-
-  deletedAt:  { type: Date ,default:null },
-}, { timestamps: true });
+  { timestamps: true },
+);
 
 export const User_model = mongoose.model("User", userSchema);
 
