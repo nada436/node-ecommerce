@@ -28,6 +28,7 @@ const createCustomer = catchAsync(async (req, res) => {
 
   res.status(200).json({ customerId: customer.id });
 });
+
 const addNewCard = catchAsync(async (req, res) => {
   console.log("req.body:", req.body);
   const { card_token } = req.body;
@@ -83,6 +84,7 @@ const createCharge = catchAsync(async (req, res) => {
     status: payment.status,
   });
 });
+
 const getCards = catchAsync(async (req, res) => {
   const user = await User_model.findById(req.user._id);
 

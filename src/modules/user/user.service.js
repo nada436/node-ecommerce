@@ -1,10 +1,10 @@
-import { now } from "mongoose";
-import { sendOTPEmail } from "../../utils/email_service.js";
+
 import { generateOTP } from "../../utils/otp.js";
 import {  User_model } from "./user.model.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken'
 import {OAuth2Client}  from 'google-auth-library';
+import { sendEmail } from "../../utils/email/email_service.js";
 
 
 export const signup=async(req,res)=>{
@@ -31,14 +31,18 @@ if (existingName) {
     const hashedPassword = await bcrypt.hash(password, +process.env.saltRounds);
      password=await bcrypt.hash(password,+process.env.saltRounds)
     // create new user
-   let user = await User_model.create({ name, password, email, password: hashedPassword,
+   let user = await User_model.create({ name, email, password: hashedPassword,
       otp: hashedOtp,
       otpExpiry: Date.now() + 10 * 60 * 1000, // 10 minutes from now
     });
 
     //send email
-    let emails=await sendOTPEmail(user.email,otp)
-    console.log(emails)
+   await sendEmail({
+  to: user.email,
+  otp: otp,
+  type: "verifyEmail",
+});
+   
     
     res.status(201).json({
       status: "success",
@@ -67,10 +71,15 @@ export const resend_otp = async (req, res, next) => {
       otp: hashedOtp,
       otpExpiry: Date.now() + 10 * 60 * 1000,
     });
-    await sendOTPEmail(user.email, otp);
+    await sendEmail({
+  to: user.email,
+  otp:otp,
+  type: "verifyEmail",
+});
     res.json({ status: "success", message: "OTP sent successfully" });
   
 };
+
 
 
 //verify_account
@@ -184,7 +193,7 @@ const{idToken}=req.body
     const payload = ticket.getPayload();
      const{email,name}=payload
 //check if user not Exist
- let user= await User_model.findOne({email,name})
+ let user = await User_model.findOne({ email, deletedAt: null });
  if(!user){
   user= await User_model.create({name,email,provider:"google"})
  }
@@ -231,43 +240,6 @@ const{idToken}=req.body
 
 
 
-
-
-
-
-
-
-export const refreshAccessToken = async (req, res) => {
-
-  const refreshToken = req.cookies.refreshToken;
-
-  if (!refreshToken) {
-    return res.status(401).json({
-      message: "No refresh token"
-    });
-  }
-
-    const decoded = jwt.verify(
-      refreshToken,
-      process.env.JWT_REFRESH_SECRET
-    );
-
-    const newAccessToken = jwt.sign(
-      { id: decoded.id },
-      process.env.JWT_SECRET,
-      { expiresIn: "15m" }
-    );
-
-    res.cookie("accessToken", newAccessToken, {
-      httpOnly: true,
-      maxAge: 15 * 60 * 1000
-    });
-
-    res.json({
-      message: "New access token created"
-    });
-
-};
 
   //forget password---->use resend_otp function
 export const forget_password=async(req,res)=>{

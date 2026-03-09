@@ -1,12 +1,4 @@
-import { transporter } from "../config/mailer.js";
-
-
-export const sendOTPEmail = async (to, otp) => {
-  await transporter.sendMail({
-    from: `"ecommerce App" <nada.nasr436@gmail.com>`,
-    to,
-    subject: "Your OTP Code",
-    html: `
+export const verifyEmail=(otp) =>`
       <div style="font-family: Arial, sans-serif; padding: 24px;">
         <h2>Your Verification Code</h2>
         <p>Use the code below to verify your account:</p>
@@ -15,6 +7,4 @@ export const sendOTPEmail = async (to, otp) => {
         </div>
         <p style="color: #999; margin-top: 16px;">This code expires in 10 minutes.</p>
       </div>
-    `,
-  });
-};
+    `
