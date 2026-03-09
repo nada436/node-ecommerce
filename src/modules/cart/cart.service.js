@@ -160,7 +160,6 @@ export const get_cart = async (req, res) => {
 };
 
 export const apply_promo = async (req, res) => {
-  try {
     const { code } = req.body;
 
     if (!code) {
@@ -266,10 +265,5 @@ export const apply_promo = async (req, res) => {
         promoCode: promo.code,
       },
     });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
+  
 };

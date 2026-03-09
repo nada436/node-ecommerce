@@ -36,7 +36,7 @@ export const createOrder = async (req, res) => {
         price: item.product.price,
       }));
      
-      totalAmount = cart.totalamount;
+      totalAmount = cart.totalAmount;
 
       // Clear the cart after ordering
       await Cart.findOneAndDelete({ user_id: userId });
@@ -70,7 +70,7 @@ export const createOrder = async (req, res) => {
         ? { name: guestName, email: guestEmail, phone: guestPhone }
         : undefined,
     });
-    await sendEmail({to:req.user.email||guestEmail,type:"orderdetails",order})
+    await sendEmail({to:req.user.email||guestEmail,type:"orderdetails", order: { ...order.toObject(),customerName: req.user.name||guestName}})
 
     res.status(201).json({ message: "Order placed successfully", order });
   } 

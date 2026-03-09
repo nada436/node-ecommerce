@@ -1,4 +1,23 @@
-export const order_details=(order) =>`
+export const order_details = (order) => {
+  const { _id: orderId, status, paymentMethod, shippingAddress, totalAmount, products } = order;
+  const { governorate, city, street } = shippingAddress;
+  const customerName = order.customerName;
+
+  const productRows = products.map(item => `
+    <tr>
+      <td style="padding: 12px 0; border-bottom: 1px solid #ede8e0; font-size: 13px; color: #3a3a3a;">
+        ${item.product?.name || item.product}
+      </td>
+      <td style="padding: 12px 0; border-bottom: 1px solid #ede8e0; font-size: 13px; color: #3a3a3a; text-align: center;">
+        ${item.quantity}
+      </td>
+      <td style="padding: 12px 0; border-bottom: 1px solid #ede8e0; font-size: 13px; color: #3a3a3a; text-align: right;">
+        EGP ${item.price}
+      </td>
+    </tr>
+  `).join('');
+
+  return `
     <div style="background-color: #f0ebe3; padding: 40px 16px; font-family: Georgia, 'Times New Roman', serif;">
       <div style="max-width: 600px; margin: 0 auto; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
 
@@ -47,7 +66,7 @@ export const order_details=(order) =>`
               <td style="width: 50%; padding-left: 8px; vertical-align: top;">
                 <div style="background: #faf8f4; border: 1px solid #ede8e0; border-radius: 10px; padding: 14px 18px;">
                   <div style="font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #999; margin-bottom: 4px;">Order Date</div>
-                  <div style="font-size: 14px; color: #1a1a1a; font-weight: 500;">${orderDate}</div>
+                  <div style="font-size: 14px; color: #1a1a1a; font-weight: 500;">${new Date(order.createdAt).toLocaleDateString()}</div>
                 </div>
               </td>
             </tr>
@@ -58,7 +77,7 @@ export const order_details=(order) =>`
                   <div style="font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #999; margin-bottom: 4px;">Status</div>
                   <div>
                     <span style="background: #fff8e6; color: #b07d20; border: 1px solid #f0d080; border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 500; text-transform: capitalize;">
-                      ${order.status}
+                      ${status}
                     </span>
                   </div>
                 </div>
@@ -88,14 +107,14 @@ export const order_details=(order) =>`
           <!-- Totals -->
           <div style="background: #faf8f4; border: 1px solid #ede8e0; border-radius: 12px; padding: 18px 22px; margin-bottom: 32px;">
             <div style="display: flex; justify-content: space-between; font-size: 14px; color: #666; padding: 5px 0;">
-              <span>Subtotal</span><span>EGP ${order.totalAmount}</span>
+              <span>Subtotal</span><span>EGP ${totalAmount}</span>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 14px; color: #666; padding: 5px 0;">
               <span>Shipping</span><span>EGP 0</span>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 600; color: #1a1a1a; padding: 14px 0 4px; border-top: 1px solid #ede8e0; margin-top: 8px;">
               <span>Total</span>
-              <span style="color: #c8a96e; font-size: 18px;">EGP ${order.totalAmount}</span>
+              <span style="color: #c8a96e; font-size: 18px;">EGP ${totalAmount}</span>
             </div>
           </div>
 
@@ -120,7 +139,7 @@ export const order_details=(order) =>`
                   <div style="font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #c8a96e; margin-bottom: 8px;">Payment Method</div>
                   <div style="font-size: 13px; color: #3a3a3a; line-height: 1.7; text-transform: capitalize;">
                     ${paymentMethod}<br/>
-                    <span style="color: #c8a96e; font-size: 12px;">EGP ${order.totalAmount}</span>
+                    <span style="color: #c8a96e; font-size: 12px;">EGP ${totalAmount}</span>
                   </div>
                 </div>
               </td>
@@ -129,7 +148,7 @@ export const order_details=(order) =>`
 
           <!-- CTA -->
           <div style="text-align: center; padding: 4px 0 8px;">
-            <a href="${process.env.CLIENT_URL}/orders/${order._id}"
+            <a href="${process.env.CLIENT_URL}/orders/${orderId}"
                style="display: inline-block; background: #1a1a1a; color: #f0ebe3; text-decoration: none; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; font-weight: 500; padding: 14px 40px; border-radius: 50px;">
               Track Your Order
             </a>
@@ -154,4 +173,5 @@ export const order_details=(order) =>`
 
       </div>
     </div>
-  `
+  `;
+};
