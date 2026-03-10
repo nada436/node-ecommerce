@@ -186,7 +186,7 @@ export const verify_account = async (req, res, next) => {
 //login by google
 export const signup_bygoogle=async(req,res)=>{
 const{idToken}=req.body
-  const client = new OAuth2Client();
+  const client = new OAuth2Client(process.env.CLIENT_ID);
   const ticket = await client.verifyIdToken({
         idToken,
         audience: process.env.CLIENT_ID,  
