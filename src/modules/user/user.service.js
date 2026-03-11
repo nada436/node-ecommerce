@@ -162,11 +162,13 @@ export const verify_account = async (req, res, next) => {
 
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
+     sameSite: 'lax',
     maxAge: 15 * 60 * 1000
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
+     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 
@@ -212,11 +214,13 @@ const{idToken}=req.body
 
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
+     sameSite: 'lax',
     maxAge: 15 * 60 * 1000
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
+    sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 

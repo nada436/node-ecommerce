@@ -127,8 +127,8 @@ const deleteProduct = async (req, res) => {
 
 const toggleFavorite = async (req, res) => {
   const { id } = req.params;
+  const user = req.user;
 
-  // check product
   const product = await Product.findById(id);
   if (!product) {
     return res.status(404).json({
@@ -136,6 +136,24 @@ const toggleFavorite = async (req, res) => {
       message: "No product found with this ID",
     });
   }
+
+  const isFavorite = user.favorites.some(
+    fav => fav.toString() === id
+  );
+
+  if (isFavorite) {
+    user.favorites.pull(id);
+  } else {
+    user.favorites.push(id);
+  }
+
+  await user.save();
+
+  res.status(200).json({
+    status: "success",
+    favorites: user.favorites,
+  });
+};
 
   const user = req.user;
   const index = user.favorites.findIndex(
