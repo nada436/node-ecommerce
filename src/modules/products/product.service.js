@@ -2,6 +2,7 @@ import Product from "./product.model.js";
 import productValidation from "./product.validation.js";
 import { Category } from "../categories/category.model.js";
 import mongoose from "mongoose";
+import { User_model } from "../user/user.model.js";
 
 const getAllProducts = async (req, res) => {
   const {
@@ -180,15 +181,14 @@ const toggleFavorite = async (req, res) => {
  
 
 const getFavourites = async (req, res) => {
-  let user = req.user;
-  const favourites = await Product.find({
-    _id: { $in: user.favorites },
-  });
-
+  const user = await User_model.findById(req.user._id)
+    .populate("favorites");
+    console.log("hi")
+    console.log(user)
   res.status(200).json({
     status: "success",
-    results: favourites.length,
-    data: favourites,
+    results: user.favorites.length,
+    data: user.favorites,
   });
 };
 
