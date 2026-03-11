@@ -6,6 +6,7 @@ import {
   deleteProduct,
   toggleFavorite,
   getFavourites,
+  getProductById,
 } from "./product.service.js";
 
 import { catchAsync } from "../../midleware/errorHandler.middleware.js";
@@ -15,6 +16,7 @@ import { restrictTo } from "../../midleware/Authorization.middleware.js";
 export const product_routes = Router();
 
 product_routes.get("/", getAllProducts);
+product_routes.get("/:id", getProductById);
 product_routes.post("/", auth, restrictTo("admin"), catchAsync(createProduct));
 product_routes.patch(
   "/:id",

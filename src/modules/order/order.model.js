@@ -19,6 +19,8 @@ const orderSchema = new mongoose.Schema(
       },
     ],
     totalAmount: { type: Number, required: true },
+    discount: { type: Number, default: 0 }, // ← added
+    promoCode: { type: String, default: null }, // ← added
     status: {
       type: String,
       enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
@@ -41,7 +43,7 @@ const orderSchema = new mongoose.Schema(
       phone: { type: String },
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Order = mongoose.model("Order", orderSchema);

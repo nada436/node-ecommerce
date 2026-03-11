@@ -2,6 +2,7 @@ import Product from "./product.model.js";
 import productValidation from "./product.validation.js";
 import { Category } from "../categories/category.model.js";
 import mongoose from "mongoose";
+
 const getAllProducts = async (req, res) => {
   const {
     name,
@@ -43,6 +44,27 @@ const getAllProducts = async (req, res) => {
     message: "Products retrieved successfully",
     data: {
       products,
+    },
+  });
+};
+const getProductById = async (req, res) => {
+  const PID = req.params?.id;
+  const product = await Product.findById({ _id: PID }, { __v: 0 });
+
+  if (!product) {
+    return res.status(404).json({
+      status: "fail",
+      data: {
+        message: "There is no product with this id",
+      },
+    });
+  }
+  res.status(200).json({
+    status: "success",
+
+    message: "Product retrieved successfully",
+    data: {
+      product,
     },
   });
 };
@@ -156,9 +178,7 @@ const toggleFavorite = async (req, res) => {
 };
 
   const user = req.user;
-  const index = user.favorites.findIndex(
-    (fav) => fav.toString() === id
-  );
+  const index = user.favorites.findIndex((fav) => fav.toString() === id);
 
   if (index > -1) {
     user.favorites.splice(index, 1);
@@ -175,47 +195,24 @@ const toggleFavorite = async (req, res) => {
 };
 
 const getFavourites = async (req, res) => {
-   let user= req.user
-   const favourites = await Product.find({
-      _id: { $in: user.favorites },
-    });
+  let user = req.user;
+  const favourites = await Product.find({
+    _id: { $in: user.favorites },
+  });
 
-    res.status(200).json({
-      status: "success",
-      results: favourites.length,
-      data: favourites,
-    });
+  res.status(200).json({
+    status: "success",
+    results: favourites.length,
+    data: favourites,
+  });
+};
 
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-export { getAllProducts, createProduct, updateProduct, deleteProduct ,getFavourites,toggleFavorite};
+export {
+  getAllProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getFavourites,
+  toggleFavorite,
+  getProductById,
+};
