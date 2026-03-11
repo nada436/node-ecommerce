@@ -7,10 +7,11 @@ import {OAuth2Client}  from 'google-auth-library';
 import { sendEmail } from "../../utils/email/email_service.js";
 
 
+
 export const signup=async(req,res)=>{
  let {name,password,email}=req.body;
  //check if user already exist
- let existingEmail = await User_model.findOne({ email ,deletedAt:null});
+ let existingEmail = await User_model.findOne({ email });
 if (existingEmail) {
   return res.status(400).json({
     status: "fail",
@@ -18,7 +19,7 @@ if (existingEmail) {
   });
 }
 
-let existingName = await User_model.findOne({ name ,deletedAt:null });
+let existingName = await User_model.findOne({ name });
 if (existingName) {
   return res.status(400).json({
     status: "fail",
@@ -60,7 +61,7 @@ if (existingName) {
 
 //resend_otp
 export const resend_otp = async (req, res, next) => {
-    const user = await User_model.findOne({ email: req.body.email }); 
+    const user = await User_model.findOne({ email: req.body.email,وisblocked:false,deletedAt:null}); 
     if (!user) {
       return res.status(400).json({ status: "fail", message: "User not found" });
     }
@@ -86,10 +87,10 @@ export const resend_otp = async (req, res, next) => {
 export const verify_account = async (req, res, next) => {
     const { email, otp } = req.body;
 
-    const user = await User_model.findOne({ email });
+    const user = await User_model.findOne({ email, isblocked:false,deletedAt:null});
 
     if (!user) {
-      return res.status(404).json({ status: "fail", message: "User not found" });
+      return res.status(404).json({ status: "fail", message: "Invalid email" });
     }
 
     if (user.isVerified) {
@@ -122,7 +123,7 @@ export const verify_account = async (req, res, next) => {
      filter.email=req.body.email
   }
 
-  const user = await User_model.findOne({...filter,deletedAt:null});
+  const user = await User_model.findOne({...filter,isblocked:false,deletedAt:null});
 
   if (!user) {
     return res.status(401).json({
@@ -185,7 +186,7 @@ export const verify_account = async (req, res, next) => {
 //login by google
 export const signup_bygoogle=async(req,res)=>{
 const{idToken}=req.body
-  const client = new OAuth2Client();
+  const client = new OAuth2Client(process.env.CLIENT_ID);
   const ticket = await client.verifyIdToken({
         idToken,
         audience: process.env.CLIENT_ID,  
@@ -244,9 +245,9 @@ const{idToken}=req.body
   //forget password---->use resend_otp function
 export const forget_password=async(req,res)=>{
  const { email ,otp,new_password} = req.body;
-    const user = await User_model.findOne({email,deletedAt:null});
+    const user = await User_model.findOne({email,isblocked:false,deletedAt:null});
     if (!user) {
-      return res.status(404).json({ status: "fail", message: "User not found" });
+      return res.status(404).json({ status: "fail", message: "Invalid email" });
     }
   if (user.otpExpiry < Date.now()) { 
       return res.status(400).json({ status: "fail", message: "OTP expired, request a new one" });
@@ -333,3 +334,35 @@ export const delete_user=async(req,res)=>{
   })
 
 }
+
+
+export const getall_users=async(req,res)=>{
+ const users = await User_model.find({ _id: { $ne: req.user.id } })
+    
+    if (!users.length) {
+      return res.status(404).json({ message: "No users found" });
+    }
+
+    res.status(200).json({ success: true,count: users.length,users });
+  } 
+
+
+export const BlockAndUnblock = async (req, res) => {
+  const id = req.params.id; 
+
+  const user = await User_model.findOne(
+    {_id:id}
+  );
+
+  if (!user) {
+    return res.status(404).json({ message: "No user with this id" });
+  }
+ user.isblocked = !user.isblocked;
+  await user.save()
+
+  res.status(200).json({
+    success: true,
+    message: "user updated successfully",
+    user, 
+  });
+};

@@ -70,9 +70,13 @@ export const createOrder = async (req, res) => {
         ? { name: guestName, email: guestEmail, phone: guestPhone }
         : undefined,
     });
-    await sendEmail({to:req.user.email||guestEmail,type:"orderdetails", order: { ...order.toObject(),customerName: req.user.name||guestName}})
-
-    res.status(201).json({ message: "Order placed successfully", order });
+    const populatedOrder = await Order.findById(order._id).populate("products.product", "name");
+    await sendEmail({
+  to: req.user?.email || guestEmail,
+  type: "orderdetails",
+  order: { ...populatedOrder.toObject(), customerName: req.user?.name || guestName }
+});
+    res.status(201).json({ success: true,message: "Order placed successfully", order });
   } 
 
   export const getMyOrders = async (req, res) => {
@@ -85,5 +89,39 @@ export const createOrder = async (req, res) => {
       return res.status(404).json({ message: "No orders found" });
     }
 
-    res.status(200).json({ count: orders.length, orders });
+    res.status(200).json({ success: true,count: orders.length, orders });
   } 
+
+export const getall_orders=async(req,res)=>{
+ const orders = await Order.find({ })
+      .populate("products.product", "name price image ")
+      .sort({ createdAt: -1 });
+
+    if (!orders.length) {
+      return res.status(404).json({ message: "No orders found" });
+    }
+
+    res.status(200).json({ success: true,count: orders.length, orders });
+  } 
+
+
+export const change_orderStatus = async (req, res) => {
+  const id = req.params.id; 
+  const { status } = req.body;
+
+  const order = await Order.findByIdAndUpdate(
+    id,
+    { status },
+    { new: true, runValidators: true }
+  );
+
+  if (!order) {
+    return res.status(404).json({ message: "No order with this id" });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Status updated successfully",
+    order, 
+  });
+};

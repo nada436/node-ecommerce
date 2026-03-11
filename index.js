@@ -17,12 +17,17 @@ import { promo_router } from "./src/modules/promo/promocode.controller.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
-
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:4200",
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.originalUrl}`);
+  next();
+});
 connectDB();
 
 app.use("/api/user", user_routes);
@@ -36,4 +41,9 @@ app.use("/api/order", order_routes);
 app.use(errorHandler);
 
 app.listen(port, () => console.log(`Server running on port ${port}!`));
+
+
+
+
+
 
