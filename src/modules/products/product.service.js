@@ -177,22 +177,7 @@ const toggleFavorite = async (req, res) => {
   });
 };
 
-  const user = req.user;
-  const index = user.favorites.findIndex((fav) => fav.toString() === id);
-
-  if (index > -1) {
-    user.favorites.splice(index, 1);
-  } else {
-    user.favorites.push(id);
-  }
-
-  await user.save();
-
-  res.json({
-    status: "success",
-    favorites: user.favorites,
-  });
-};
+ 
 
 const getFavourites = async (req, res) => {
   let user = req.user;
