@@ -4,7 +4,12 @@ export const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: { 
+  type: String, 
+  required: function() {
+    return this.provider === 'system'; 
+  }
+},
     stripeCustomerId: {
       type: String,
       default: null,
@@ -19,6 +24,7 @@ export const userSchema = new mongoose.Schema(
       enum: ["system", "google"],
       default: "system",
     },
+    Address:{ type: String, default: null },
     favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
     isblocked:{ type: Boolean, default: false },
     deletedAt: { type: Date, default: null },

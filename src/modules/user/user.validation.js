@@ -41,7 +41,8 @@ export const forget_passwordSchema = z.object({
 export const update_Schema = z.object({
   email:  user_data.email.optional(),
   name:user_data.name.optional(),
-  phone:user_data.phone.optional()
+  phone:user_data.phone.optional(),
+  Address:z.string().optional()
 });
 
 

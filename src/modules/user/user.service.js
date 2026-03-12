@@ -190,65 +190,70 @@ export const verify_account = async (req, res, next) => {
 
 
 //login by google
-export const signup_bygoogle=async(req,res)=>{
-const{idToken}=req.body
-  const client = new OAuth2Client(process.env.CLIENT_ID);
-  const ticket = await client.verifyIdToken({
-        idToken,
-        audience: process.env.CLIENT_ID,  
-    });
-    const payload = ticket.getPayload();
-     const{email,name}=payload
-//check if user not Exist
- let user = await User_model.findOne({ email, deletedAt: null });
- if(!user){
-  user= await User_model.create({name,email,provider:"google"})
- }
- const accessToken = jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: "15m" }
-  );
+export const signup_bygoogle = async (req, res) => {
+  try {
+    const { idToken } = req.body;
 
-  const refreshToken = jwt.sign(
-    { id: user._id },
-    process.env.JWT_REFRESH_SECRET,
-    { expiresIn: "7d" }
-  );
-
-  res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-      sameSite: 'none',  
-         secure: true, 
-    maxAge: 15 * 60 * 1000
-  });
-
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-     sameSite: 'none',  
-         secure: true, 
-    maxAge: 7 * 24 * 60 * 60 * 1000
-  });
-
-  res.json({
-    status: "success",
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role
+    
+    if (!idToken) {
+      return res.status(400).json({ status: "error", message: "idToken is required" });
     }
-  });
+    
+    const client = new OAuth2Client(process.env.CLIENT_ID);
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.CLIENT_ID,
+    });
 
+    const payload = ticket.getPayload();
+    const { email, name } = payload;
 
+    let user = await User_model.findOne({ email, deletedAt: null });
+    if (!user) {
+      user = await User_model.create({ name, email, provider: "google" });
+    }
 
+    const accessToken = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
 
+    const refreshToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+    );
 
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      maxAge: 15 * 60 * 1000,
+    });
 
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
+    res.json({
+      status: "success",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
 
-}
-
+  } catch (err) {
+    console.error('[signup_bygoogle] ❌ Error:', err.message);
+    res.status(500).json({ status: "error", message: err.message });
+  }
+};
 
 
 
@@ -296,6 +301,7 @@ export const update_user=async(req,res)=>{
     if (req.body.name) filter.name = req.body.name;
     if (req.body.email) filter.email = req.body.email; 
     if (req.body.phone) filter.phone = req.body.phone; 
+    if (req.body.Address) filter.Address = req.body.Address;
     let user = await User_model.findOneAndUpdate(
       { email: req.user.email, deletedAt: null }, 
       filter,
@@ -315,6 +321,7 @@ export const update_user=async(req,res)=>{
         email: user.email,
         phone: user.phone,
         role: user.role
+        ,Address:user.Address
       }
     });
 
