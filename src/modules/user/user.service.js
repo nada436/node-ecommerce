@@ -34,7 +34,7 @@ if (existingName) {
     // create new user
    let user = await User_model.create({ name, email, password: hashedPassword,
       otp: hashedOtp,
-      otpExpiry: Date.now() + 10 * 60 * 1000, // 10 minutes from now
+      otpExpiry: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
     });
 
     //send email
@@ -61,24 +61,26 @@ if (existingName) {
 
 //resend_otp
 export const resend_otp = async (req, res, next) => {
-    const user = await User_model.findOne({ email: req.body.email,isblocked:false,deletedAt:null}); 
+    const user = await User_model.findOne({ email: req.body.email}); 
     if (!user) {
       return res.status(400).json({ status: "fail", message: "User not found" });
     }
+    
     const otp = generateOTP();
     const hashedOtp = await bcrypt.hash(otp, +process.env.saltRounds);
 
-    await user.updateOne({
-      otp: hashedOtp,
-      otpExpiry: Date.now() + 10 * 60 * 1000,
-    });
+    await User_model.findOneAndUpdate(
+      { email: req.body.email },
+      { otp: hashedOtp,  otpExpiry: new Date(Date.now() + 10 * 60 * 1000) }
+    );
+
     await sendEmail({
-  to: user.email,
-  otp:otp,
-  type: "verifyEmail",
-});
+      to: user.email,
+      otp: otp,
+      type: "verifyEmail",
+    });
+
     res.json({ status: "success", message: "OTP sent successfully" });
-  
 };
 
 
@@ -97,9 +99,9 @@ export const verify_account = async (req, res, next) => {
       return res.status(400).json({ status: "fail", message: "Account already verified" });
     }
 
-    if (user.otpExpiry < Date.now()) { 
-      return res.status(400).json({ status: "fail", message: "OTP expired, request a new one" });
-    }
+  if (!user.otpExpiry || new Date() > user.otpExpiry) {
+  return res.status(400).json({ status: "fail", message: "OTP expired, request a new one" });
+}
 
     const isMatch = await bcrypt.compare(otp, user.otp); 
     if (!isMatch) {
@@ -162,13 +164,15 @@ export const verify_account = async (req, res, next) => {
 
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
-     sameSite: 'lax',
+     sameSite: 'none',  
+         secure: true, 
     maxAge: 15 * 60 * 1000
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-     sameSite: 'lax',
+     sameSite: 'none',  
+         secure: true, 
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 
@@ -214,13 +218,15 @@ const{idToken}=req.body
 
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
-     sameSite: 'lax',
+      sameSite: 'none',  
+         secure: true, 
     maxAge: 15 * 60 * 1000
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
-    sameSite: 'lax',
+     sameSite: 'none',  
+         secure: true, 
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 
@@ -247,20 +253,29 @@ const{idToken}=req.body
 
 
   //forget password---->use resend_otp function
-export const forget_password=async(req,res)=>{
- const { email ,otp,new_password} = req.body;
-    const user = await User_model.findOne({email,isblocked:false,deletedAt:null});
-    if (!user) {
-      return res.status(404).json({ status: "fail", message: "Invalid email" });
-    }
-  if (user.otpExpiry < Date.now()) { 
-      return res.status(400).json({ status: "fail", message: "OTP expired, request a new one" });
-    }
+export const forget_password = async (req, res) => {
+  const { email, otp, new_password } = req.body;
+  
+  console.log("OTP received:", otp);  
+  
+ const user = await User_model.findOne({email, isblocked:false, deletedAt:null}).lean();
+  if (!user) {
+    return res.status(404).json({ status: "fail", message: "Invalid email" });
+  }
 
-    const isMatch = await bcrypt.compare(otp, user.otp); 
-    if (!isMatch) {
-      return res.status(400).json({ status: "fail", message: "Invalid OTP" });
-    }
+ 
+  if (!user.otpExpiry || new Date() > user.otpExpiry) {
+    return res.status(400).json({ status: "fail", message: "OTP expired" });
+  }
+
+  const isMatch = await bcrypt.compare(otp, user.otp);
+  console.log("isMatch:", isMatch);  
+   console.log("otp type:", typeof otp);
+console.log("otp length:", otp.length);
+console.log("isMatch:", isMatch);
+  if (!isMatch) {
+    return res.status(400).json({ status: "fail", message: "Invalid OTP" });
+  }
     const hashedPassword = await bcrypt.hash(new_password, +process.env.saltRounds);
     await User_model.updateOne({email},{password:hashedPassword}); 
     res.json({ status: "success", message: "password updated successfully" });

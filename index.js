@@ -18,7 +18,10 @@ import { promo_router } from "./src/modules/promo/promocode.controller.js";
 const app = express();
 const port = process.env.PORT || 3000;
 app.use(cors({
-  origin: "http://localhost:4200",
+  origin: [
+    'http://localhost:4200',
+    'https://your-frontend-domain.com'
+  ],
   credentials: true
 }));
 app.use(express.json());

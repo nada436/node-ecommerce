@@ -43,8 +43,8 @@ export const auth = async (req, res, next) => {
         res.cookie("accessToken", newAccessToken, {
           httpOnly: true,
           maxAge: 15 * 60 * 1000,
-          sameSite: 'lax',
-          secure: process.env.NODE_ENV === "production",
+         sameSite: 'none',  
+         secure: true, 
         });
 
         req.user = user;
@@ -105,8 +105,8 @@ export const auth = async (req, res, next) => {
         res.cookie("accessToken", newAccessToken, {
           httpOnly: true,
           maxAge: 15 * 60 * 1000,
-          sameSite: 'lax',
-          secure: process.env.NODE_ENV === "production",
+           sameSite: 'none',  
+         secure: true, 
         });
 
         req.user = user;
