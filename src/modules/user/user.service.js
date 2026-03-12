@@ -61,7 +61,7 @@ if (existingName) {
 
 //resend_otp
 export const resend_otp = async (req, res, next) => {
-    const user = await User_model.findOne({ email: req.body.email,وisblocked:false,deletedAt:null}); 
+    const user = await User_model.findOne({ email: req.body.email,isblocked:false,deletedAt:null}); 
     if (!user) {
       return res.status(400).json({ status: "fail", message: "User not found" });
     }
