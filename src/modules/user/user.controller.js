@@ -15,7 +15,7 @@ user_routes.post("/login",validate(loginSchema),catchAsync(login))
 user_routes.post("/forget_password",validate(forget_passwordSchema),catchAsync(forget_password))
 user_routes.get("/myprofile",auth,catchAsync(getuser))
 user_routes.get("/logout",auth,catchAsync(logout))
-user_routes.post("/signup_bygoogle",auth,catchAsync(signup_bygoogle))  //test
+user_routes.post("/signup_bygoogle",catchAsync(signup_bygoogle))  //test
 user_routes.patch("/update_user",validate(update_Schema),auth,catchAsync(update_user))
 user_routes.delete("/delete_user",auth,catchAsync(delete_user))
 
