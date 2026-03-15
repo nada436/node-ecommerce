@@ -208,26 +208,13 @@ export const signup_bygoogle = async (req, res) => {
     const payload = ticket.getPayload();
     const { email, name } = payload;
 
-    let user = await User_model.findOne({ email });
-    if (user) {
-      if (user.deletedAt) {
-        return res.status(403).json({
-          status: "fail",
-          message: "Account has been deleted",
-        });
-      }
-      if (user.isblocked) {
-        return res.status(403).json({
-          status: "fail",
-          message: "Account is blocked",
-        });
-      }
-    } else {
-      user = await User_model.create({
-        name,
-        email,
+    let user = await User_model.findOne({ email, deletedAt: null });
+    if (!user) {
+      user = await User_model.create({ 
+        name, 
+        email, 
         provider: "google",
-        isVerified: true,
+        isVerified: true 
       });
     }
 
