@@ -13,7 +13,7 @@ const productValidation = z.object({
 
   stock: z.number().min(0, "Stock cannot be negative").optional(),
 
-  image: z.optional(),
+  image: z.string().optional(),
 });
 
 export default productValidation;
