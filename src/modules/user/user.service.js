@@ -356,8 +356,6 @@ export const delete_user=async(req,res)=>{
   { email: req.user.email },
   { deletedAt: new Date() }
 );
-    res.clearCookie("accessToken")
-    res.clearCookie("refreshToken")
     res.json({
       status: "success",
       message: "User soft deleted successfully",
@@ -368,9 +366,17 @@ export const delete_user=async(req,res)=>{
 
   //logout
   export const logout = async(req,res)=>{
+res.clearCookie("accessToken", {
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+  });
 
-  res.clearCookie("accessToken")
-  res.clearCookie("refreshToken")
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+  });
 
   res.json({
     status:"success",
