@@ -20,7 +20,7 @@ const port = process.env.PORT || 3000;
 app.use(cors({
   origin: [
     'http://localhost:4200',
-    'https://your-frontend-domain.com'
+    'https://rosselee.netlify.app'
   ],
   credentials: true
 }));
