@@ -41,7 +41,7 @@ export const createOrder = async (req, res) => {
     promoCode = cart.promoCode ?? null;
 
     // totalAmount is the final amount after discount
-    totalAmount = cart.finalAmount ?? cart.totalAmount;
+    totalAmount = cart.finalAmount > 0 ? cart.finalAmount : cart.totalAmount;
 
     await Cart.findOneAndDelete({ user_id: userId });
   } else {
