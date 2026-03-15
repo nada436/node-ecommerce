@@ -24,7 +24,7 @@ export const add_product = async (req, res) => {
   }
 
   const index = cart.products.findIndex(
-    (item) => item.product._id.toString() === productId,
+    (item) => item.product && item.product._id && item.product._id.toString() === productId,
   );
 
   if (index > -1) {
@@ -35,7 +35,7 @@ export const add_product = async (req, res) => {
 
   await cart.populate("products.product");
   cart.totalAmount = cart.products.reduce(
-    (sum, item) => sum + item.quantity * item.product.price,
+    (sum, item) => sum + item.quantity * (item.product?.price || 0),
     0,
   );
 
@@ -54,11 +54,11 @@ export const remove_product = async (req, res) => {
   }
 
   cart.products = cart.products.filter(
-    (item) => item.product._id.toString() !== productId,
+    (item) => item.product && item.product._id && item.product._id.toString() !== productId,
   );
 
   cart.totalAmount = cart.products.reduce(
-    (sum, item) => sum + item.quantity * item.product.price,
+    (sum, item) => sum + item.quantity * (item.product?.price || 0),
     0,
   );
   // reset promo if cart is empty
@@ -88,7 +88,7 @@ export const quantity_adjustment = async (req, res) => {
     }
 
     const index = cart.products.findIndex(
-      (item) => item.product._id.toString() === productId
+      (item) => item.product && item.product._id && item.product._id.toString() === productId
     );
 
     if (index === -1) {
@@ -106,7 +106,7 @@ export const quantity_adjustment = async (req, res) => {
 
     // Recalculate total
     cart.totalAmount = cart.products.reduce(
-      (sum, item) => sum + item.quantity * item.product.price,
+      (sum, item) => sum + item.quantity * (item.product?.price || 0),
       0
     );
 
