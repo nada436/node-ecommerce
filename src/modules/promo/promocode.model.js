@@ -4,7 +4,6 @@ const promoCodeSchema = new mongoose.Schema(
     code: {
       type: String,
       required: [true, "Promo code is required."],
-      unique: true,
       uppercase: true,
       trim: true,
     },

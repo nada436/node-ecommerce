@@ -13,7 +13,7 @@ const productValidation = z.object({
 
   stock: z.number().min(0, "Stock cannot be negative").optional(),
 
-  image: z.string().url("Image must be a valid URL").optional(),
+  image: z.optional(),
 });
 
 export default productValidation;
