@@ -20,7 +20,7 @@ const port = process.env.PORT || 3000;
 app.use(cors({
   origin: [
     'http://localhost:4200',
-    'https://rosselee.netlify.app'
+    'https://roselle-angular-project.vercel.app'
   ],
   credentials: true
 }));
